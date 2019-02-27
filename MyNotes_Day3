@@ -1,0 +1,141 @@
+SQL DAY 3
+=================
+JOINS
+=================
+package.database
+    HomePageDB
+    LoginPageDB
+package.pages
+    HomePage
+    LoginPage
+package.step_definitions
+    HomePageStepDefinitions
+    LoginPageStepDefinitions
+public void verifyReservationInDB(String teamName, String time){
+    //Command that we are runnig to get some data from DB
+    String QUERY = "SELECT reservation from reservations where team_name = '"+teamName+"' AND reservation_time = '"+time+"'";
+    //we are runnig to get list of reservations based on the team name and time
+    List<String> listOfREservations = dbUtils.getListOfData(QUERY);
+    //we are verifying that reservation has been created 
+    assertTtrue(listOfREservations.size()>0);
+}
+=================
+WE CAN JOIN TABLES ONLY IF THEY ARE CONNECTED OR RELATED
+TABLES can we connected if on othe tables imports primary key of other table
+|table1| |  table2    |
+|job_id| | employee_id|
+         | job_id   
+In the table1 primary key is job_id, then when this key becomes foreign key in the  table 2. Based on this criteria tables consider to be related.
+(INNER) JOIN: Returns records that have matching values in both tables.
+LEFT (OUTER) JOIN: Returns records that have matching values in both tables and from the left table.
+RIGHT (OUTER) JOIN: Returns records that have matching values in both tables and from the right table.
+FULL OUTER JOIN: Return all records from both sides
+// IN ORACLE you are using describe in orcer to describe some table;
+IN Postgres DB you can use this query:
+select column_name, is_nullable, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'employees';
+SELECT e.first_name, 
+       e.last_name, 
+       j.job_title, 
+       c.country_name
+FROM employees e
+LEFT JOIN jobs j ON e.job_id=j.job_id
+JOIN departments d ON e.department_id=d.department_id
+JOIN locations l ON d.location_id=l.location_id
+JOIN countries c ON l.country_id=c.country_id;
+--- In the emploees table we have 107 records, in the job history we have 10 records
+SELECT *
+FROM employees e
+RIGHT JOIN job_history j ON e.employee_id=j.employee_id;
+In this case employees table is the LEFT side and job_history is the RIGHT side
+//We got 10 records after running this query. Why?
+Because we got all employees based om the employee if who located in the employees table and who has a job history. Also we've tried to get entire job history record from job history table even for the employees who is not in the employees table any more.
+SELECT *
+FROM employees e
+JOIN job_history j ON e.employee_id=j.employee_id;
+            Table 1 (employees)
+|employee_id|first_name| 
+|    1      | James    |
+|    2      | Carl     |
+|    4      | Bart     |
+            Table 2 (job_history)
+|job_history_id|employee_id|start_date |end_date | 
+|      1       |      1    | 12/10/2001|01/01/2005|
+|      2       |      2    | 12/10/2003|01/01/2015|
+|      3       |      3    | 12/10/2004|01/01/2016|
+table 1
+JOIN
+table 2
+table 1 --- LEFT SIDE
+table 2 --- RIGHT SIDE
+=============WHEN WE DO JOIN (INNER JOIN)=======
+|employee_id|first_name|job_history_id|employee_id_1|start_date|end_date  |  
+|    1      | James    |      1       |      1      |2/10/2001 |01/01/2005|
+|    2      | Carl     |      2       |      2      |12/10/2003|01/01/2015|
+SELECT *
+FROM table 1 t1
+LEFT JOIN table 2 t2 ON t1.employee_id=t2.employee_id
+table 1 --- LEFT SIDE
+table 2 --- RIGHT SIDE
+=====================WHEN WE DO LEFT JOIN==================
+|employee_id|first_name|job_history_id|employee_id_1|start_date|end_date  |  
+|    1      | James    |      1       |      1      |2/10/2001 |01/01/2005|
+|    2      | Carl     |      2       |      2      |12/10/2003|01/01/2015|
+|    4      | Bart     |    null      |    null     |   null   |   null   |
+SELECT *
+FROM table 1 t1
+LEFT JOIN table 2 t2 ON t1.employee_id=t2.employee_id
+left side.      right side
+t1.employee_id=t2.employee_id
+table 1 --- LEFT SIDE
+table 2 --- RIGHT SIDE
+=====================WHEN WE DO RIGHT JOIN==================
+|employee_id|first_name|job_history_id|employee_id_1|start_date|end_date  |  
+|    1      | James    |      1       |      1      |2/10/2001 |01/01/2005|
+|    2      | Carl     |      2       |      2      |12/10/2003|01/01/2015|
+|   null    | null     |      3       |      3      |12/10/2004|01/01/2016|
+========TASK
+--let's find a maximum salary for employee 
+with first name Payam and last name Kaufling
+====TASKS 
+let's find avarage salary for employees who's title is Programmer
+let's find minimum salary for employees who's title is Marketing Manager
+let's find maximum salary for employees who's title is Administration Vice President
+=========UNIONS
+If joins allows you to relate similar data in different tables
+then union returns result of two different queries as single record
+UNION for connecting two queries and remove duplicates 
+UNION ALL for connecting qieries with duplicates
+SELECT first_name, last_name, department_id 
+from employees 
+where department_id IN (100, 60)
+UNION
+SELECT first_name, last_name, department_id 
+FROM employees 
+WHERE department_id IN (100, 60, 30);
+SELECT first_name, last_name, department_id 
+from employees 
+where department_id IN (100, 60)
+UNION ALL
+SELECT first_name, last_name, department_id 
+FROM employees 
+WHERE department_id IN (100, 60, 30);
+Union combines data into new rows. When we use UNION it's removes duplicates, UNION ALL keeps duplicates
+===========EXCEPT/MINUS
+IN THE ORACLE DATABASE IT'S called MINUS
+In the PostgreSQL it's EXCEPT
+SELECT first_name, last_name, department_id 
+from employees 
+where department_id IN (100, 60, 30)
+EXCEPT
+SELECT first_name, last_name, department_id 
+FROM employees 
+WHERE department_id IN (100, 60);
+So we will get the difference from two tables
+query result 1 - query result 2 = difference;
+======TASK 
+Please get all employees with job title Stock Manager who is getting salary above avarage.
+SELECT *
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees WHERE job_id = 'ST_MAN');
+--- instead of job_id use job title
+
